@@ -1,16 +1,19 @@
-import { Pool } from "pg";
-import { env } from "./env";
+import { Pool } from 'pg';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 export const pool = new Pool({
-    host: env.db.host,
-    port: env.db.port,
-    database: env.db.database,
-    user: env.db.user,
-    password: env.db.password
+    user: process.env.DB_USER,
+    host: process.env.DB_HOST,
+    database: process.env.DB_NAME,
+    password: process.env.DB_PASSWORD,
+    port: Number(process.env.DB_PORT) || 5432,
 });
 
-export async function testDataBase(): Promise<void>{
-    await pool.query(`SELECT NOW()`);
-
-    console.log(`PostgresSQL conectado`);
-}
+pool.connect()
+    .then(client => {
+        console.log('Conexión exitosa a PostgreSQL db');
+        client.release();
+    })
+    .catch(err => console.error('Error al conectar a PostgreSQL:', err.stack));
