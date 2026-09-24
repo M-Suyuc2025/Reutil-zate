@@ -1,20 +1,18 @@
-import express from 'express';
-import dotenv from 'dotenv';
-import { pool } from './config/database'; 
+import cors from "cors";
+import dotenv from "dotenv";
+import express from "express";
+import wasteRoutes from "./routes/waste.routes";
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const port = Number(process.env.PORT) || 3000;
 
+app.use(cors());
 app.use(express.json());
 
-app.get('/', (req, res) => {
-    res.send('Server Init');
-});
+app.use("/api/waste", wasteRoutes);
 
-pool.connect(); 
-
-app.listen(PORT, () => {
-    console.log(`Server Init on port ${PORT}`);
+app.listen(port, () => {
+  console.log(`Server listening on http://localhost:${port}`);
 });
