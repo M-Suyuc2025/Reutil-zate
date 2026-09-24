@@ -5,9 +5,10 @@ import { z } from "zod";
 const roboflowEnvSchema = z.object({
   ROBOFLOW_API_KEY: z.string().min(1),
   ROBOFLOW_MODEL_URL: z.url(),
+  ROBOFLOW_MIN_CONFIDENCE: z.coerce.number().min(0).max(1).default(0.5),
 });
 
-type RoboflowConfig = z.infer<typeof roboflowEnvSchema>;
+export type RoboflowConfig = z.infer<typeof roboflowEnvSchema>;
 
 let cachedConfig: RoboflowConfig | null = null;
 
@@ -19,9 +20,9 @@ export function getRoboflowConfig(): RoboflowConfig {
   const parsed = roboflowEnvSchema.safeParse(process.env);
 
   if (!parsed.success) {
-    const missing = parsed.error.issues.map((issue) => issue.path.join("."));
+    const invalidVars = parsed.error.issues.map((issue) => issue.path.join("."));
     throw new Error(
-      `Missing or invalid Roboflow environment variables: ${missing.join(", ")}.`
+      `Missing or invalid Roboflow environment variables: ${invalidVars.join(", ")}.`
     );
   }
 
