@@ -13,5 +13,6 @@ export interface ClassificationResponse {
   material: string;
   confidence: number;
   pointsEarned: number;
+  saved: boolean;
   image: ImageMetadata;
 }

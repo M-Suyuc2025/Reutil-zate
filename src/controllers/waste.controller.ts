@@ -1,4 +1,6 @@
 import type { Request, Response } from "express";
+import { getMaterialIdByName } from "../repositories/materials.repository";
+import { createRecyclingRecord } from "../repositories/recycling.repository";
 import { calculatePointsForMaterial } from "../services/points.service";
 import { classifyImage } from "../services/roboflow.service";
 import type {
@@ -33,7 +35,7 @@ export async function classifyWaste(req: Request, res: Response): Promise<void> 
 
   let pointsEarned: number;
   try {
-    pointsEarned = calculatePointsForMaterial(classification.label);
+    pointsEarned = await calculatePointsForMaterial(classification.label);
   } catch (err) {
     // No debería ocurrir (Roboflow solo devuelve las 6 clases con puntos),
     // pero se cubre por completitud: 500 genérico + detalle en el log.
@@ -43,6 +45,23 @@ export async function classifyWaste(req: Request, res: Response): Promise<void> 
     );
     res.status(500).json({ error: "Internal server error." });
     return;
+  }
+
+  let saved = false;
+
+  if (req.user) {
+    try {
+      const materialId = await getMaterialIdByName(classification.label);
+      await createRecyclingRecord(req.user.id, materialId, pointsEarned);
+      saved = true;
+    } catch (err) {
+      // La clasificación ya fue exitosa: si falla el guardado no se rompe la
+      // respuesta, se responde 200 con saved: false y se loguea el error.
+      console.error(
+        "[waste] failed to save recycling record:",
+        err instanceof Error ? err.message : err,
+      );
+    }
   }
 
   const image: ImageMetadata = {
@@ -55,6 +74,7 @@ export async function classifyWaste(req: Request, res: Response): Promise<void> 
     material: classification.label,
     confidence: classification.confidence,
     pointsEarned,
+    saved,
     image,
   };
 
