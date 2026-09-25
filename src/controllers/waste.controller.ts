@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { calculatePointsForMaterial } from "../services/points.service";
 import { classifyImage } from "../services/roboflow.service";
 import type {
   ClassificationResponse,
@@ -30,6 +31,20 @@ export async function classifyWaste(req: Request, res: Response): Promise<void> 
     return;
   }
 
+  let pointsEarned: number;
+  try {
+    pointsEarned = calculatePointsForMaterial(classification.label);
+  } catch (err) {
+    // No debería ocurrir (Roboflow solo devuelve las 6 clases con puntos),
+    // pero se cubre por completitud: 500 genérico + detalle en el log.
+    console.error(
+      "[waste] no points mapping for material:",
+      err instanceof Error ? err.message : err,
+    );
+    res.status(500).json({ error: "Internal server error." });
+    return;
+  }
+
   const image: ImageMetadata = {
     filename: req.file.originalname,
     mimetype: req.file.mimetype,
@@ -39,6 +54,7 @@ export async function classifyWaste(req: Request, res: Response): Promise<void> 
   const body: ClassificationResponse = {
     material: classification.label,
     confidence: classification.confidence,
+    pointsEarned,
     image,
   };
 
