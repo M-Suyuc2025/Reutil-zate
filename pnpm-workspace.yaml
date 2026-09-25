@@ -1,7 +1,0 @@
-allowBuilds:
-  bcrypt: false
-  esbuild: false
-
-packages:
-  - 'src'
-  - 'packages/*'
