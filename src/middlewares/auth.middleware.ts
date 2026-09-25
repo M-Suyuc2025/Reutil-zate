@@ -38,3 +38,42 @@ export function authenticate(
     res.status(401).json({ message: "Token Inválido o Vencido." });
   }
 }
+
+// Middleware opcional: nunca rechaza la petición. Si hay token válido adjunta
+// req.user; si no hay token o está roto, continúa igual sin adjuntarlo.
+export function optionalAuthenticate(
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+): void {
+  const authorization = req.headers.authorization;
+  const [type, token] = authorization?.split(" ") ?? [];
+
+  if (type === "Bearer" && token) {
+    const user = decodeAuthUser(token);
+    if (user) {
+      req.user = user;
+    }
+  }
+
+  next();
+}
+
+function decodeAuthUser(token: string): AuthUser | null {
+  try {
+    const decoded = jwt.verify(token, getEnv().jwtSecret);
+
+    if (
+      typeof decoded !== "object" ||
+      decoded === null ||
+      typeof decoded.id !== "number" ||
+      typeof decoded.email !== "string"
+    ) {
+      return null;
+    }
+
+    return { id: decoded.id, email: decoded.email };
+  } catch {
+    return null;
+  }
+}

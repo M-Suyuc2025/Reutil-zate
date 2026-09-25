@@ -40,3 +40,19 @@ export class LowConfidenceError extends HttpError {
     this.confidence = confidence;
   }
 }
+
+// Autenticación: email inexistente o contraseña incorrecta.
+export class InvalidCredentialsError extends Error {
+  constructor() {
+    super("Invalid credentials.");
+    this.name = "InvalidCredentialsError";
+  }
+}
+
+// Registro: el email ya existe en la tabla users.
+export class EmailAlreadyExistsError extends Error {
+  constructor() {
+    super("Email already registered.");
+    this.name = "EmailAlreadyExistsError";
+  }
+}
