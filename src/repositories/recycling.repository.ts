@@ -1,4 +1,5 @@
 import { getPool } from "../config/database";
+import type { HistoryRecord } from "../types/history";
 
 // Inserta el reciclaje y suma los puntos al usuario en una sola transacción:
 // si falla cualquiera de las dos operaciones, se hace ROLLBACK de ambas.
@@ -33,4 +34,31 @@ export async function createRecyclingRecord(
   } finally {
     client.release();
   }
+}
+
+// Historial de reciclajes del usuario, con nombre del material, de más
+// reciente a más antiguo.
+export async function getHistoryByUserId(
+  userId: number,
+): Promise<HistoryRecord[]> {
+  const result = await getPool().query<{
+    id: number;
+    material: string;
+    points_earned: number;
+    created_at: Date;
+  }>(
+    `SELECT r.id, m.name AS material, r.points_earned, r.created_at
+     FROM recycling_records r
+     JOIN materials m ON m.id = r.material_id
+     WHERE r.user_id = $1
+     ORDER BY r.created_at DESC`,
+    [userId],
+  );
+
+  return result.rows.map((row) => ({
+    id: row.id,
+    material: row.material,
+    pointsEarned: row.points_earned,
+    createdAt: new Date(row.created_at).toISOString(),
+  }));
 }

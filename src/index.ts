@@ -2,6 +2,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import authRoutes from "./routes/auth.routes";
+import historyRoutes from "./routes/history.routes";
 import wasteRoutes from "./routes/waste.routes";
 
 dotenv.config();
@@ -13,6 +14,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
+app.use("/api/waste", historyRoutes);
 app.use("/api/waste", wasteRoutes);
 
 app.listen(port, () => {
