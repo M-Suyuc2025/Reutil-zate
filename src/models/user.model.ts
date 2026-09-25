@@ -1,9 +1,9 @@
-export interface User{
-    id: Number,
-    nombre: string,
-    email: string
+export interface User {
+  id: number;
+  name: string;
+  email: string;
 }
 
-export interface UserWithPassword extends User{
-    password_hash: string;
+export interface UserWithPassword extends User {
+  password: string;
 }

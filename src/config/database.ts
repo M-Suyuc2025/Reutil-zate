@@ -1,19 +1,21 @@
-import { Pool } from 'pg';
-import dotenv from 'dotenv';
+import { Pool } from "pg";
+import { getEnv } from "./env";
 
-dotenv.config();
+let pool: Pool | null = null;
 
-export const pool = new Pool({
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_NAME,
-    password: process.env.DB_PASSWORD,
-    port: Number(process.env.DB_PORT) || 5432,
-});
+// Pool perezoso: se crea la primera vez que se hace una consulta, validando
+// antes las variables de entorno. No impide el arranque si falta la base.
+export function getPool(): Pool {
+  if (!pool) {
+    const { dbUser, dbHost, dbName, dbPassword, dbPort } = getEnv();
+    pool = new Pool({
+      user: dbUser,
+      host: dbHost,
+      database: dbName,
+      password: dbPassword,
+      port: dbPort,
+    });
+  }
 
-pool.connect()
-    .then(client => {
-        console.log('Conexión exitosa a PostgreSQL db');
-        client.release();
-    })
-    .catch(err => console.error('Error al conectar a PostgreSQL:', err.stack));
+  return pool;
+}
