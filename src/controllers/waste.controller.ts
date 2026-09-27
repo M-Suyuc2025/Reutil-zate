@@ -1,5 +1,8 @@
 import type { Request, Response } from "express";
-import { getMaterialIdByName } from "../repositories/materials.repository";
+import {
+  getMaterialIdByName,
+  getReuseIdeasByMaterialName,
+} from "../repositories/materials.repository";
 import { createRecyclingRecord } from "../repositories/recycling.repository";
 import { calculatePointsForMaterial } from "../services/points.service";
 import { classifyImage } from "../services/roboflow.service";
@@ -7,6 +10,7 @@ import type {
   ClassificationResponse,
   ClassificationResult,
   ImageMetadata,
+  ReuseIdea,
 } from "../types/waste";
 import { HttpError, LowConfidenceError } from "../utils/errors";
 
@@ -48,8 +52,22 @@ export async function classifyWaste(req: Request, res: Response): Promise<void> 
   }
 
   let saved = false;
+  let reuseIdeas: ReuseIdea[] = [];
 
   if (req.user) {
+    // Solo se consultan ideas con sesión activa; sin token se devuelve []
+    // sin tocar la base de datos.
+    try {
+      reuseIdeas = await getReuseIdeasByMaterialName(classification.label);
+    } catch (err) {
+      // Las ideas son contenido complementario: si falla su consulta no se
+      // rompe la respuesta principal, se responde vacío y se loguea.
+      console.error(
+        "[waste] failed to load reuse ideas:",
+        err instanceof Error ? err.message : err,
+      );
+    }
+
     try {
       const materialId = await getMaterialIdByName(classification.label);
       await createRecyclingRecord(req.user.id, materialId, pointsEarned);
@@ -75,6 +93,7 @@ export async function classifyWaste(req: Request, res: Response): Promise<void> 
     confidence: classification.confidence,
     pointsEarned,
     saved,
+    reuseIdeas,
     image,
   };
 
