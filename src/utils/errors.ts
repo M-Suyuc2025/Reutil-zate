@@ -56,3 +56,36 @@ export class EmailAlreadyExistsError extends Error {
     this.name = "EmailAlreadyExistsError";
   }
 }
+
+// Recompensas y canjes.
+export class RewardNotFoundError extends Error {
+  constructor(id: number) {
+    super(`Reward #${id} not found or inactive.`);
+    this.name = "RewardNotFoundError";
+  }
+}
+
+export class RewardLimitExceededError extends Error {
+  constructor(type: "monthly" | "total", limit: number, count: number) {
+    super(`Reward ${type} limit reached (${count}/${limit}).`);
+    this.name = "RewardLimitExceededError";
+  }
+}
+
+export class InsufficientPointsError extends Error {
+  constructor(available: number, required: number) {
+    super(
+      `Insufficient points: ${available} available, ${required} required.`,
+    );
+    this.name = "InsufficientPointsError";
+  }
+}
+
+// True si el error proveniente de pg es una violación de constraint UNIQUE.
+export function isUniqueViolation(err: unknown): boolean {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    (err as { code?: unknown }).code === "23505"
+  );
+}
