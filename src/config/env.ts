@@ -9,6 +9,8 @@ const envSchema = z.object({
   DB_NAME: z.string().min(1),
   DB_PASSWORD: z.string().min(1),
   DB_PORT: z.coerce.number().int().min(1).max(65535).default(5432),
+  // Origen permitido para CORS, configurable en producción sin tocar código.
+  FRONTEND_URL: z.string().min(1).default("http://localhost:4200"),
 });
 
 export interface Env {
@@ -18,6 +20,7 @@ export interface Env {
   dbName: string;
   dbPassword: string;
   dbPort: number;
+  frontendUrl: string;
 }
 
 let cachedEnv: Env | null = null;
@@ -43,6 +46,7 @@ export function getEnv(): Env {
     dbName: parsed.data.DB_NAME,
     dbPassword: parsed.data.DB_PASSWORD,
     dbPort: parsed.data.DB_PORT,
+    frontendUrl: parsed.data.FRONTEND_URL,
   };
 
   return cachedEnv;
