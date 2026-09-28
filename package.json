@@ -7,7 +7,10 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "seed:materials": "tsx src/db/seed-materials.ts"
+    "seed:materials": "tsx src/db/seed-materials.ts",
+    "db:schema": "tsx src/db/migrate-schema.ts",
+    "seed:ideas": "tsx src/db/seed-reuse-ideas.ts",
+    "seed:rewards": "tsx src/db/seed-rewards.ts"
   },
   "keywords": [],
   "author": "",
